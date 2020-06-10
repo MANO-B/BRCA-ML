@@ -9,7 +9,7 @@ output:
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-wd = getwd()
+wd = "/mnt/HDD/share/BRCA-ML"
 options(width = 1800)
 knitr::opts_chunk$set(fig.width=12, fig.height=8, echo=TRUE, warning=FALSE, message=FALSE)
 knitr::opts_knit$set(root.dir = wd)
@@ -64,6 +64,33 @@ rm(keep, j)
 #glimpse(all_annotations)
 ```
 
+AApos correction
+
+Pos CAVA_PROTPOS
+```{r}
+AApos_list = read.csv('sources/AApos.tsv',sep="\t", header = TRUE)
+all_annotations$AApos = 0
+
+for (i in 1:length(AApos_list[[1]])){
+  print(i)
+  for (j in 1:length(all_annotations[[1]])){
+    if(all_annotations$Pos[[j]] == AApos_list[[1]][[i]]){
+      all_annotations$AApos[[j]] = AApos_list[[2]][[i]]
+    }
+  }
+}
+
+write.table(all_annotations, file='results/all_annotations.tsv', sep='\t', row.names = FALSE)
+
+```
+
+
+```{r}
+all_annotations = read.csv('results/all_annotations.tsv',sep="\t", header = TRUE)
+```
+
+
+
 Plot all predictions
 ```{r eval = FALSE, echo = FALSE}
 scores = read.csv('sources/base_thresholds',sep="\t", header = FALSE)
@@ -99,6 +126,9 @@ rm(model, p, tmp)
 ```
 
 Set some useful functions
+
+
+filter_to_target_regions(Findlay_df, variant_search = TRUE)
 ```{r useful-functions}
 
 # Create a filter to remove nything not in the BRCT/RING domains of BRCA1 and the DNA binding domain of BRCA2
@@ -208,8 +238,8 @@ omit = Fernandes$variant[grep('del|\\+|WT|\\/|ins',Fernandes$variant)]
 
 Fernandes = Fernandes %>%
   filter(!variant %in% omit) %>%
-  filter(IARC %in% c(0,1,4,5)) %>%
-  mutate(Call = ifelse(IARC > 2, "Damaging", "Neutral"), Gene = 'BRCA1') %>%
+  filter(fClass %in% c(0,1,4,5)) %>%
+  mutate(Call = ifelse(fClass > 2, "Damaging", "Neutral"), Gene = 'BRCA1') %>%
   select(Gene, Variant, Call) %>%
   mutate(Source = "Fernandes et al., 2019")
 
@@ -503,7 +533,7 @@ if (train==TRUE){
                                t_ = b1_TRAINED_DATA$threshold )
 }else{
   h2o.init(min_mem_size = "16g", max_mem_size = "32g", nthreads = 1)
-  b1_TRAINED_DATA = h2o.loadModel('results/GBM_grid_1_AutoML_20190920_074644_model_55')
+  b1_TRAINED_DATA = h2o.loadModel('results/GBM_grid__1_AutoML_20200609_202901_model_38')
   threshold = b1_TRAINED_DATA@model$cross_validation_metrics@metrics$max_criteria_and_metric_scores$threshold[1]
   b1_TESTED_DATA = test_model(b1_DATA_SPLITS, b1_TRAINED_DATA, threshold = threshold)
   b1_PREDICTIONS = apply_model_to_gene(model = b1_TRAINED_DATA, 
@@ -531,7 +561,7 @@ if (train==TRUE){
                                splits = b2_DATA_SPLITS, 
                                t_ = b2_TRAINED_DATA$threshold )
 }else{
-  b2_TRAINED_DATA = h2o.loadModel('results/XGBoost_grid_1_AutoML_20190920_084013_model_2')
+  b2_TRAINED_DATA = h2o.loadModel('results/XGBoost_grid__1_AutoML_20200609_193536_model_405')
   threshold = b2_TRAINED_DATA@model$cross_validation_metrics@metrics$max_criteria_and_metric_scores$threshold[1]
   b2_TESTED_DATA = test_model(b2_DATA_SPLITS, b2_TRAINED_DATA, threshold = threshold)
   b2_PREDICTIONS = apply_model_to_gene(model = b2_TRAINED_DATA, 
@@ -865,12 +895,12 @@ write.table(TABLE_S2, file='results/TableS2.tsv', sep='\t', row.names = FALSE)
 
 Show Variable Importances for BRCA1 (only when training)
 ```{r}
-#b1_TRAINED_DATA$vi
+b1_TRAINED_DATA$vi
 ```
 
 Show Variable Importances for BRCA2 (only when training)
 ```{r}
-#b2_TRAINED_DATA$vi
+b2_TRAINED_DATA$vi
 ```
 
 ```{r}
