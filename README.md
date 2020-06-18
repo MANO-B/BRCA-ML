@@ -1,4 +1,7 @@
 # BRCA-ML
+This program was originally made by Hart, S.N. and modified by Ikegami, M.
+https://github.com/Steven-N-Hart/BRCA-ML
+--------------
 Prediction of the functional impact of missense variants in BRCA1 and BRCA2 with BRCA-ML
 
 
