@@ -526,13 +526,14 @@ if (train==TRUE){
   b1_TESTED_DATA = test_model(b1_DATA_SPLITS, b1_TRAINED_DATA$model, threshold = b1_TRAINED_DATA$threshold)
   b1_PREDICTIONS = apply_model_to_gene(model = b1_TRAINED_DATA$model, 
                                           gene = 'BRCA1', 
-                                          threshold = b1_TRAINED_DATA$threshold)
+                                          threshold = b1_TRAINED_DATA$threshold,
+                                          annotations = b1_DATA_SPLITS$test)
   b1_PLOTS = plot_full_gene(b1_PREDICTIONS, 
                                'BRCA1', 
                                splits = b1_DATA_SPLITS, 
                                t_ = b1_TRAINED_DATA$threshold )
 }else{
-  h2o.init(min_mem_size = "16g", max_mem_size = "32g", nthreads = 1)
+  h2o.init(min_mem_size = "16g", max_mem_size = "32g", nthreads = 4)
   b1_TRAINED_DATA = h2o.loadModel('results/GBM_grid__1_AutoML_20200609_202901_model_38')
   threshold = b1_TRAINED_DATA@model$cross_validation_metrics@metrics$max_criteria_and_metric_scores$threshold[1]
   b1_TESTED_DATA = test_model(b1_DATA_SPLITS, b1_TRAINED_DATA, threshold = threshold)
